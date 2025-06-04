@@ -30,11 +30,11 @@
 #'   method = "Normal (3, 3)"
 #' )
 #'
-#' results = sum_meth(eff1 = res$eff1, eff2 = res$eff2,
+#' sum_meth(eff1 = res$eff1, eff2 = res$eff2,
 #' se1 = res$se1, se2 = res$se2,
 #' cov12 = res$cov12, method = "Normal (1, 6)")
 #'
-#'results
+#'
 #'
 sum_meth = function(eff1, eff2, se1, se2, cov12, method) {
   m = length(eff1)
