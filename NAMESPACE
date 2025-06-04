@@ -2,5 +2,8 @@
 
 export(CorCov)
 export(genimp)
+export(sum_meth)
 importFrom(mvtnorm,rmvnorm)
+importFrom(stats,cov)
+importFrom(stats,qt)
 importFrom(stats,var)
