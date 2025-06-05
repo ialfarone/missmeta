@@ -7,7 +7,8 @@
 makepooldata(data, effs = "eff", ses = "se", covs = "cov")
 }
 \arguments{
-\item{data}{Dataframe with effect sizes, standard errors, covariances.}
+\item{data}{Dataframe with effect sizes (named eff1, eff2, ...), standard errors (named se1, se2, ...),
+covariances (named cov12, cov13,...).}
 
 \item{effs}{Prefix for effect size columns (e.g., "eff")}
 

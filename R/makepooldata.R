@@ -1,6 +1,7 @@
 #' Helper to create Q_mat and U_list for poolsums
 #'
-#' @param data Dataframe with effect sizes, standard errors, covariances.
+#' @param data Dataframe with effect sizes (named eff1, eff2, ...), standard errors (named se1, se2, ...),
+#' covariances (named cov12, cov13,...).
 #' @param effs Prefix for effect size columns (e.g., "eff")
 #' @param ses Prefix for standard error columns (e.g., "se")
 #' @param covs Prefix for covariance columns (e.g., "cov")
@@ -23,16 +24,25 @@ makepooldata <- function(data, effs = "eff", ses = "se", covs = "cov") {
     cov_mat <- matrix(0, K, K)
     diag(cov_mat) <- se_vals^2
 
-    for (j in 1:(K-1)) {
-      for (k in (j+1):K) {
-        cov_name <- paste0(covs, j, k)
-        if (cov_name %in% names(data)) {
-          cov_val <- data[[cov_name]][i]
-          cov_mat[j, k] <- cov_val
-          cov_mat[k, j] <- cov_val
+    if ("cov" %in% names(data) && K == 2) {
+      # Only for bivariate case
+      cov_val <- data$cov[i]
+      cov_mat[1, 2] <- cov_val
+      cov_mat[2, 1] <- cov_val
+    } else {
+
+      for (j in 1:(K-1)) {
+        for (k in (j+1):K) {
+          cov_name <- paste0(covs, j, k)
+          if (cov_name %in% names(data)) {
+            cov_val <- data[[cov_name]][i]
+            cov_mat[j, k] <- cov_val
+            cov_mat[k, j] <- cov_val
+          }
         }
       }
     }
+
     cov_mat
   })
 
