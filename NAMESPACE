@@ -2,6 +2,7 @@
 
 export(CorCov)
 export(genimp)
+export(makepooldata)
 export(sum_meth)
 importFrom(mvtnorm,rmvnorm)
 importFrom(stats,cov)
