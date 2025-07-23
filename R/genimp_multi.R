@@ -20,7 +20,7 @@
 #' @export
 #'
 #' @importFrom mvtnorm rmvnorm
-#' @importFrom stats var
+#' @importFrom stats var complete.cases
 #'
 #' @examples
 #' # Define dummy imputation functions
