@@ -2,7 +2,7 @@
 % Please edit documentation in R/makepooldata.R
 \name{makepooldata}
 \alias{makepooldata}
-\title{Helper to create Q_mat and U_list for sumeth}
+\title{Helper to create Q_mat and U_list for sumeth_multi}
 \usage{
 makepooldata(data, effs = "eff", ses = "se", covs = "cov")
 }
@@ -20,5 +20,5 @@ covariances (named cov12, cov13,...).}
 A list with Q_mat and U_list
 }
 \description{
-Helper to create Q_mat and U_list for sumeth
+Helper to create Q_mat and U_list for sumeth_multi
 }
