@@ -9,23 +9,19 @@
 #' @return A list with Q_mat and U_list
 #' @export
 #'
-#'
 makepooldata <- function(data, effs = "eff", ses = "se", covs = "cov") {
   K <- sum(grepl(paste0("^", effs), names(data)))
   m <- nrow(data)
 
-  # Build Q_mat
   effs_col <- paste0(effs, 1:K)
   Q_mat <- as.matrix(data[, effs_col])
 
-  # Build U_list
   U_list <- lapply(1:m, function(i) {
     se_vals <- unlist(data[i, paste0(ses, 1:K)])
     cov_mat <- matrix(0, K, K)
     diag(cov_mat) <- se_vals^2
 
     if ("cov" %in% names(data) && K == 2) {
-      # Only for bivariate case
       cov_val <- data$cov[i]
       cov_mat[1, 2] <- cov_val
       cov_mat[2, 1] <- cov_val
@@ -42,9 +38,7 @@ makepooldata <- function(data, effs = "eff", ses = "se", covs = "cov") {
         }
       }
     }
-
     cov_mat
   })
-
   list(Q_mat = Q_mat, U_list = U_list)
 }
