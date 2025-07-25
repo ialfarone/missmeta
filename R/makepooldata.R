@@ -1,4 +1,4 @@
-#' Helper to create Q_mat and U_list for sumeth
+#' Helper to create Q_mat and U_list for sumeth_multi
 #'
 #' @param data Dataframe with effect sizes (named eff1, eff2, ...), standard errors (named se1, se2, ...),
 #' covariances (named cov12, cov13,...).
