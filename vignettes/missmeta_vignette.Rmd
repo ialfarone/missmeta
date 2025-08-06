@@ -1,5 +1,5 @@
 ---
-title: "missmeta_vignette"
+title: "`missmeta`: Flexible imputation for multivariate meta-analysis"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{missmeta_vignette}
@@ -14,6 +14,202 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Introduction
+
+The `missmeta` package provide flexible tools for imputation of missing outcome variables in multivariate meta-analysis. The idea is that, in presence of missing data, the user makes assumptions circa the nature of the missing data and explores the consequences of these assumptions over a possible range of values and the robustness of the results. 
+Multivariate meta-analysis is known for being able to deal with missing at random data, by borrowing strength from the other complete observations. However, the assumption of missing at random might fall short in some scenarios. `missmeta` allows the user to test different possible scenarios under which the data might be missing by specifying the distribution(s) from which the imputed outcomes can be drawn. 
+
+The present vignette illustrates:
+
+- How to impute missing effect sizes under different distributional assumptiosn
+
+- How to pool the estimates across imputations using Rubin's rules.
+
+- How to visualize the effect estimates with uncertainty intervals.
+
+We will show its application with a simulated dataset included with the package.
+
+# Load data
+
+The dataset `dmnar` is a simulated bivariate meta-analysis with MNAR missing values.
+
 ```{r setup}
 library(missmeta)
+data(dmnar)
+head(dmnar)
+```
+The dataset presents 50 studies with 100 participants each that present the outcome of interest (e.g., depression) either measured on a Clinician-rating scale (CR) or on a Self-report (SR) or both. Standard errors and within study correlations are also reported when available. Missing data have been generated with a Missing Not At Random mechanism (MNAR), low values on the CR are more likely to be missing, high values on the SR are more likely to be missing. 
+
+# Define imputation distributions
+We define here multipe distributions to reflect different imputation assumptions for the missing effect sizes:
+
+1. Uniform: great uncertainty, wide range of possible vaues;
+
+2. Normal (with mean 0): missing outcomes are those that reported null effects;
+
+3. Normal (with mean 3): positive shift assumed for missing outcomes;
+
+4. Normal (with mean -3): negative shift assumed for missing outcomes;
+
+5. Truncated multivariate normal (with means -3 and 3): precise assumptions on missing data that reflects the correlated nature of the data within bounds. 
+
+```{r distr}
+set.seed(123)
+
+# Uniform distribution
+unif1 <- function(n) runif(n, min = -20, max = 20)
+unif2 <- function(n) runif(n, min = -20, max = 20)
+
+# Normal distributions
+norm01 <- function(n) rnorm(n, mean = 0, sd = 6)
+norm02 <- function(n) rnorm(n, mean = 0, sd = 6)
+
+norm31 <- function(n) rnorm(n, mean = 3, sd = 6)
+norm32 <- function(n) rnorm(n, mean = 3, sd = 6)
+
+normn31 <- function(n) rnorm(n, mean = -3, sd = 6)
+normn32 <- function(n) rnorm(n, mean = -3, sd = 6)
+
+# Truncated bivariate normal
+library(tmvtnorm)
+sigma <- matrix(c(6^2, 0.7*6*6, 0.7*6*6, 6^2), nrow = 2)
+lower <- c(-20, -20); upper <- c(20, 20)
+
+mtv1 <- function(n) rtmvnorm(n, mean = c(-3, 3), sigma = sigma, lower = lower, upper = upper)[,1]
+mtv2 <- function(n) rtmvnorm(n, mean = c(-3, 3), sigma = sigma, lower = lower, upper = upper)[,2]
+
+```
+
+# Impute missing outcomes under multiple scenarios
+
+We now impute the missing effect sizes using `genimp` for each distributional assumption. For computational reason we show here a limited number of imputations (m = 50), for more reliable estimates the user should aim for a higher number of imputed datasets per method.
+
+```{r imp}
+imp1_list <- list(unif1, norm01, norm31, normn31, mtv1)
+imp2_list <- list(unif2, norm02, norm32, normn32, mtv2)
+
+out <- mapply(function(i1, i2) {
+  genimp_multi(
+    df = dmnar,
+    iter = 50,   # to be increased
+    imps = list(i1, i2),
+    effs = c("EstCR", "EstSR"),
+    ses = c("SECR", "SESR"),
+    cors = "Cor.ws",
+    Ns = "N",
+    imprho = 0.6
+  )
+}, i1 = imp1_list, i2 = imp2_list, SIMPLIFY = FALSE)
+```
+
+# Perform meta-analysis on each imputed dataset
+
+```{r meta}
+outls <- unlist(out, recursive = FALSE)
+library(mixmeta)
+res <- lapply(outls, function(data) {
+  
+  theta <- cbind(data$EstCR, data$EstSR)
+  Sigma_list <- lapply(1:nrow(data), function(i) {
+    matrix(
+      c(
+        data$SECR[i]^2,
+        CorCov(data$Cor.ws[i], data$SECR[i], data$SESR[i]),
+        CorCov(data$Cor.ws[i], data$SECR[i], data$SESR[i]),
+        data$SESR[i]^2
+      ),
+      nrow = 2
+    )
+  })
+  
+  
+  fit <- mixmeta(theta ~ 1, S = Sigma_list, method = "ml")
+  s <- summary(fit)
+  ci <- confint(fit)
+  
+  data.frame(
+    eff1 = s$coefficients[1, 1],
+    eff2 = s$coefficients[2, 1],
+    se1 = s$coefficients[1, 2],
+    se2 = s$coefficients[2, 2],
+    cov12 = s$vcov[1, 2],
+    ci.lb1 = ci[1, 1], ci.ub1 = ci[1, 2],
+    ci.lb2 = ci[2, 1], ci.ub2 = ci[2, 2]
+  )
+})
+
+res <- do.call(rbind, res)
+res <- split(res,  rep(1:5, each=50))
+```
+
+# Pool results across imputations
+To be able to interpret the results from the imputed datasets and subsequent meta-analysis, we pool the results from each of the 50 meta-analyses using Rubin's rules. To do so, with `makepooldata` we prepare the data in a format that can be readily handled by `sumeth_multi`.
+
+```{r pool}
+methods <- c(
+  "Uniform (-20, 20)",
+  "Normal (0, 0)",
+  "Normal (3, 3)",
+  "Normal (-3, 3)",
+  "Truncated MVN (-3, 3)"
+)
+
+sumres <- mapply(function(df, label) {
+  pool <- makepooldata(data = df, effs = "eff", ses = "se", covs = "cov")
+  sumeth_multi(Q_mat = pool$Q_mat, U_list = pool$U_list, method = label)
+}, df = res, label = methods, SIMPLIFY = FALSE)
+
+df_all <- do.call(rbind, sumres)
+df_all
+```
+
+## Alternative for bivariate data
+For bivariate data, `sumeth` can be directly used without the need of preparing the dataset. 
+
+```{r pool2}
+
+sumres2 <- mapply(function(df, label) {
+  sumeth(eff1 = df$eff1, eff2 = df$eff2,
+               se1 = df$se1, se2 = df$se2, cov12 = df$cov12, method = label)
+}, df = res, label = methods, SIMPLIFY = FALSE)
+
+df2_all <- do.call(rbind, sumres2)
+df2_all
+
+```
+
+# Plot the results to explore the robustness of the results
+
+```{r plot}
+library(ggplot2)
+library(dplyr)
+
+df_cr <- df_all %>% filter(outcome == "eff1")
+
+ggplot(df_cr, aes(x = method)) +
+  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub), linewidth = 1.5) +
+  geom_point(aes(y = estimate), color = "black", size = 3) +
+  geom_hline(yintercept = 3, linetype = "dashed", color = "#A4031F") +
+  coord_flip() +
+  labs(
+    title = "Uncertainty Intervals for CR",
+    x = "Imputation Distribution", y = "Treatment Effect (CR)"
+  ) +
+  theme_minimal()
+
+
+df_sr <- df_all %>% filter(outcome == "eff2")
+
+ggplot(df_sr, aes(x = method)) +
+  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub), linewidth = 1.5) +
+  geom_point(aes(y = estimate), color = "black", size = 3) +
+  geom_hline(yintercept = 3, linetype = "dashed", color = "#A4031F") +
+  coord_flip() +
+  labs(
+    title = "Uncertainty Intervals for SR",
+    x = "Imputation Distribution", y = "Treatment Effect (SR)"
+  ) +
+  theme_minimal()
+
+
 ```

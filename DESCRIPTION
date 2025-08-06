@@ -2,27 +2,24 @@ Package: missmeta
 Type: Package
 Title: Flexible Imputation for Multivariate Meta-Analysis
 Version: 0.1.0
-Authors@R: c(
-    person(
-      "Irene", "Alfarone",
-      email = "irene.alfarone@uibk.ac.at",
-      role = c("aut", "cre")
-    )
-  )
+Authors@R: 
+    person("Irene", "Alfarone", email = "irene.alfarone@uibk.ac.at", role = c("aut", "cre"))
 Description: Flexible imputation methods for multivariate meta-analysis 
     with missing effect sizes, standard errors, and correlations.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.3.2
+Depends: 
+    R (>= 3.5)
 Imports:
     stats,
     mvtnorm
 Suggests: 
     knitr,
     rmarkdown,
+    mixmeta,
+    tmvtnorm,
+    systemfit,
     testthat (>= 3.0.0)
-Config/testthat/edition: 3
 VignetteBuilder: knitr
-Depends: 
-    R (>= 3.5)
+LazyData: true
+Config/testthat/edition: 3
