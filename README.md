@@ -1,6 +1,6 @@
-# missmeta
+# `missmeta` Flexible imputation for multivariate meta-analysis
 
-**missmeta** provides flexible imputation for multivariate meta-analysis with missing outcomes.
+`missmeta` was developed to provide flexible imputation of missing outcomes in multivariate meta-analysis.
 
 Multivariate meta-analysis allows for the joint estimation of multiple correlated outcomes and can handle incomplete datasets under the assumption of Missing At Random. 
 
