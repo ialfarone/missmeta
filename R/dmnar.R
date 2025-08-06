@@ -1,0 +1,19 @@
+#' Simulated bivariate meta-analysis dataset with MNAR outcomes
+#'
+#' This dataset contains simulated effect size estimates for 50 studies,
+#' with within-study correlations and MNAR missingness in CR and SR outcomes.
+#'
+#' @format A data frame with 50 rows and 7 columns:
+#' \describe{
+#'   \item{Study}{Study ID}
+#'   \item{N}{Sample size per study}
+#'   \item{EstCR}{Estimated coefficient for Clinician Rating (CR) outcome}
+#'   \item{EstSR}{Estimated coefficient for Self-Report (SR) outcome}
+#'   \item{SECR}{Standard error of CR estimate}
+#'   \item{SESR}{Standard error of SR estimate}
+#'   \item{Cor.ws}{Within-study correlation between CR and SR}
+#' }
+#' @examples
+#' data(dmnar)
+#' head(dmnar)
+"dmnar"
