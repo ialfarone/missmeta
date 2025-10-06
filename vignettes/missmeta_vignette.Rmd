@@ -105,12 +105,15 @@ out <- mapply(function(i1, i2) {
 # Perform meta-analysis on each imputed dataset
 
 ```{r meta}
-outls <- unlist(out, recursive = FALSE)
+outls <- lapply(out, function(x) x$imputations)
+outls <- unlist(outls, recursive = FALSE)
+
 library(mixmeta)
+
 res <- lapply(outls, function(data) {
   
   theta <- cbind(data$EstCR, data$EstSR)
-  Sigma_list <- lapply(1:nrow(data), function(i) {
+  Sigma_list <- lapply(seq_len(nrow(data)), function(i) {
     matrix(
       c(
         data$SECR[i]^2,
@@ -138,6 +141,8 @@ res <- lapply(outls, function(data) {
   )
 })
 
+res
+
 res <- do.call(rbind, res)
 res <- split(res,  rep(1:5, each=50))
 ```
@@ -159,7 +164,12 @@ sumres <- mapply(function(df, label) {
   sumeth_multi(Q_mat = pool$Q_mat, U_list = pool$U_list, method = label)
 }, df = res, label = methods, SIMPLIFY = FALSE)
 
-df_all <- do.call(rbind, sumres)
+df_all <- do.call(rbind, lapply(sumres, function(x) {
+  out <- x$results
+  out$method <- x$method
+  out
+}))
+
 df_all
 ```
 
@@ -173,7 +183,19 @@ sumres2 <- mapply(function(df, label) {
                se1 = df$se1, se2 = df$se2, cov12 = df$cov12, method = label)
 }, df = res, label = methods, SIMPLIFY = FALSE)
 
-df2_all <- do.call(rbind, sumres2)
+df2_all <- do.call(rbind, lapply(sumres2, function(x) {
+  data.frame(
+    outcome  = names(x$Q_bar),
+    estimate = x$Q_bar,
+    se       = x$se,
+    ci_lb    = x$ci[,1],
+    ci_ub    = x$ci[,2],
+    df       = x$df,
+    method   = x$method,
+    row.names = NULL
+  )
+}))
+
 df2_all
 
 ```

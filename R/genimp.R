@@ -56,8 +56,25 @@
 #'               cor = "Cor.ws",
 #'               N = "N",
 #'               imprho = 0.3)
-#' out
-
+#'
+#' summary(out)
+#' plot(out)
+#'
+#' # Multiple imputation distributions (list of dataimp objects)
+#'
+#' imps1 <- list(function(n) rnorm(n,0,1), function(n) rnorm(n,3,1))
+#' imps2 <- list(function(n) rnorm(n,0,1), function(n) rnorm(n,3,1))
+#'
+#' out_list <- mapply(function(i1,i2) {
+#'   genimp(dmnar, iter = 2,
+#'          imp1 = i1, imp2 = i2,
+#'          eff1 = "EstCR", eff2 = "EstSR",
+#'          se1 = "SECR", se2 = "SESR",
+#'          cor = "Cor.ws", N = "N")
+#' }, i1 = imps1, i2 = imps2, SIMPLIFY = FALSE)
+#'
+#' lapply(out_list, summary)
+#' lapply(out_list, plot)
 genimp = function(df, iter = 100,
                   imp1, imp2,
                   eff1 = "Eff1", eff2 = "Eff2",
@@ -98,5 +115,19 @@ genimp = function(df, iter = 100,
     results[[i]] <- dfi
   }
 
-  results
+  out <- list(
+    imputations = results,
+    iter = iter,
+    call = match.call(),
+    vars = list(eff1 = eff1, eff2 = eff2, se1 = se1, se2 = se2, cor = cor, N = N),
+    missing_counts = list(
+      eff1 = sum(is.na(df[[eff1]])),
+      eff2 = sum(is.na(df[[eff2]])),
+      se1  = sum(is.na(df[[se1]])),
+      se2  = sum(is.na(df[[se2]])),
+      cor  = sum(is.na(df[[cor]]))
+    )
+  )
+  class(out) <- "dataimp"
+  out
 }

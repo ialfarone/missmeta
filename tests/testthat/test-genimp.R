@@ -25,9 +25,10 @@ test_that("genimp returns a list of imputed data frames", {
     imprho = 0.5
   )
 
-  expect_type(out, "list")
-  expect_length(out, 3)
-  lapply(out, function(df_out) {
+  expect_s3_class(out, "dataimp")
+  expect_length(out$imputations, 3)
+
+  lapply(out$imputations, function(df_out) {
     expect_s3_class(df_out, "data.frame")
     expect_equal(nrow(df_out), nrow(df_test))
 
@@ -37,4 +38,5 @@ test_that("genimp returns a list of imputed data frames", {
     expect_false(any(is.na(df_out$SESR)))
     expect_false(any(is.na(df_out$Cor.ws)))
   })
+
 })

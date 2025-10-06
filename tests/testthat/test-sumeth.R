@@ -17,10 +17,12 @@ test_that("sumeth works as expected", {
     method = "Normal (1, 6)"
   )
 
-  expect_s3_class(result, "data.frame")
+  expect_s3_class(result, "sumeth")
 
-  expect_true(all(c("eff1", "eff2", "ci1_lb", "ci1_ub",
-                    "ci2_lb", "ci2_ub") %in% colnames(result)))
-  expect_equal(nrow(result), 1)
+  sumres <- summary(result)
+
+  expect_s3_class(sumres, "summary.sumeth")
+  expect_true(all(c("estimates", "se", "ci", "df") %in% names(sumres)))
+
 
 })

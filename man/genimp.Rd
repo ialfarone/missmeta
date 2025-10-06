@@ -75,5 +75,23 @@ out = genimp(df = dmnar,
               cor = "Cor.ws",
               N = "N",
               imprho = 0.3)
-out
+
+summary(out)
+plot(out)
+
+# Multiple imputation distributions (list of dataimp objects)
+
+imps1 <- list(function(n) rnorm(n,0,1), function(n) rnorm(n,3,1))
+imps2 <- list(function(n) rnorm(n,0,1), function(n) rnorm(n,3,1))
+
+out_list <- mapply(function(i1,i2) {
+  genimp(dmnar, iter = 2,
+         imp1 = i1, imp2 = i2,
+         eff1 = "EstCR", eff2 = "EstSR",
+         se1 = "SECR", se2 = "SESR",
+         cor = "Cor.ws", N = "N")
+}, i1 = imps1, i2 = imps2, SIMPLIFY = FALSE)
+
+lapply(out_list, summary)
+lapply(out_list, plot)
 }

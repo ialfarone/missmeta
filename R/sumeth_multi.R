@@ -9,6 +9,26 @@
 #' @return A data.frame with pooled estimates, SEs, 95% CIs, and outcome labels
 #' @export
 #'
+#' @examples
+#' # Simulate 5 imputations of 3 outcomes
+#' set.seed(123)
+#' Q_mat <- matrix(rnorm(15, mean = 3, sd = 1), nrow = 5, ncol = 3)
+#' colnames(Q_mat) <- c("CR", "SR", "HRQoL")
+#'
+#' # Create a list of within-imputation covariance matrices
+#' U_list <- lapply(1:5, function(i) {
+#'   matrix(c(0.2, 0.05, 0.01,
+#'            0.05, 0.3, 0.02,
+#'            0.01, 0.02, 0.25), nrow = 3)
+#' })
+#'
+#' # Pool using Rubin's Rules
+#' res_multi <- sumeth_multi(Q_mat, U_list, method = "Normal imputation")
+#'
+#' # Print, summarize, and plot
+#' print(res_multi)
+#' summary(res_multi)
+#' plot(res_multi)
 
 sumeth_multi <- function(Q_mat, U_list, method) {
   m <- nrow(Q_mat)
@@ -27,15 +47,24 @@ sumeth_multi <- function(Q_mat, U_list, method) {
     Q_bar[j] + c(-1, 1) * qt(0.975, df[j]) * se[j]
   }))
 
-  out <- data.frame(
+  out <- list(
     method = method,
-    outcome = paste0("eff", 1:p),
-    estimate = Q_bar,
+    estimates = Q_bar,
     se = se,
-    ci_lb = ci_mat[,1],
-    ci_ub = ci_mat[,2],
-    df = df
+    ci = ci_mat,
+    df = df,
+    m = m,
+    results = data.frame(
+      outcome = paste0("eff", 1:p),
+      estimate = Q_bar,
+      se = se,
+      ci_lb = ci_mat[, 1],
+      ci_ub = ci_mat[, 2],
+      df = df
+    )
   )
 
-  return(out)
+  class(out) <- "sumeth_multi"
+  out
+
 }

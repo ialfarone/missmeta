@@ -40,5 +40,9 @@ makepooldata <- function(data, effs = "eff", ses = "se", covs = "cov") {
     }
     cov_mat
   })
-  list(Q_mat = Q_mat, U_list = U_list)
+
+  out <- list(Q_mat = Q_mat, U_list = U_list, K = K, m = m)
+  class(out) <- "pooldata"
+  out
+
 }

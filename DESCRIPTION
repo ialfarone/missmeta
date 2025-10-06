@@ -11,6 +11,7 @@ Encoding: UTF-8
 Depends: 
     R (>= 3.5)
 Imports:
+    shiny (>= 1.9),
     stats,
     mvtnorm
 Suggests: 
@@ -23,3 +24,4 @@ Suggests:
 VignetteBuilder: knitr
 LazyData: true
 Config/testthat/edition: 3
+RoxygenNote: 7.3.2

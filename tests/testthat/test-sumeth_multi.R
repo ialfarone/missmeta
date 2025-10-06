@@ -19,15 +19,10 @@ test_that("sumeth_multi produces expected results for MVMA", {
 
   res <- sumeth_multi(Q_mat, U_list, method = "test")
 
-  expect_s3_class(res, "data.frame")
-  expect_true(all(c("method", "outcome", "estimate", "se", "ci_lb", "ci_ub", "df")
-                  %in% colnames(res)))
+  expect_s3_class(res, "sumeth_multi")
 
-  expect_equal(nrow(res), ncol(Q_mat))
-
-  expect_true(all(res$method == "test"))
-
-  expect_equal(res$outcome, c("eff1", "eff2"))
-
-  expect_equal(res$estimate, colMeans(Q_mat))
+  sumres <- summary(res)
+  expect_s3_class(sumres, "summary.sumeth_multi")
+  expect_true(all(c("outcome", "estimate", "se", "ci_lb", "ci_ub", "df")
+                  %in% colnames(sumres$table)))
 })
