@@ -45,7 +45,7 @@
 #' @method print sumeth_multi
 #' @export
 print.sumeth_multi <- function(x, ...) {
-  cat("Multivariate Rubin’s Rules object\n")
+  cat("Multivariate Rubin's Rules object\n")
   cat(" - Method:", x$method, "\n")
   cat(" - Number of imputations:", x$m, "\n")
   cat(" - Outcomes:", x$p, "\n\n")
@@ -70,7 +70,7 @@ summary.sumeth_multi <- function(object, ...) {
 #' @rdname sumeth-multi-methods
 #' @export
 print.summary.sumeth_multi <- function(x, ...) {
-  cat("Summary of Multivariate Rubin’s Rules object\n")
+  cat("Summary of Multivariate Rubin's Rules object\n")
   cat(" - Method:", x$method, "\n")
   cat(" - Number of imputations:", x$m, "\n")
   cat(" - Outcomes:", x$p, "\n\n")

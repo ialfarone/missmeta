@@ -24,5 +24,4 @@ test_that("sumeth works as expected", {
   expect_s3_class(sumres, "summary.sumeth")
   expect_true(all(c("estimates", "se", "ci", "df") %in% names(sumres)))
 
-
 })

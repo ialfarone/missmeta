@@ -11,12 +11,13 @@ Encoding: UTF-8
 Depends: 
     R (>= 3.5)
 Imports:
-    shiny (>= 1.9),
     stats,
     mvtnorm
 Suggests: 
     knitr,
     rmarkdown,
+    ggplot2,
+    dplyr,
     mixmeta,
     tmvtnorm,
     systemfit,

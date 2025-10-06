@@ -42,13 +42,13 @@
 #'   cor12 = c(NA, NA, 0.5, 0.7, 0.6, 0.6),
 #'   cor13 = c(0.3, NA, NA, 0.6, 0.6, 0.5),
 #'   cor23 = c(NA, 0.3, NA, 0.5, 0.6, 0.7),
-#'   N = c(50, 60, 55, 45, 100)
+#'   N = c(50, 60, 55, 45, 100, 62)
 #' )
 #'
 #' # Run the imputation
 #' imp_data <- genimp_multi(
 #'   df = df,
-#'   iter = 10,
+#'   iter = 10, # increase number of imputations
 #'   imps = imps,
 #'   effs = c("eff1", "eff2", "eff3"),
 #'   ses = c("se1", "se2", "se3"),

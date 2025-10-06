@@ -30,29 +30,40 @@ Methods for \code{dataimp_multi} objects
 Printing and summarizing methods for objects returned by \code{\link{genimp_multi}}.
 }
 \examples{
-imps <- list(
-  function(n) rnorm(n, 0, 1),
-  function(n) rnorm(n, 1, 1),
-  function(n) rnorm(n, 2, 1)
-)
+# Define dummy imputation functions
+imp1 <- function(n) rnorm(n, 0, 1)
+imp2 <- function(n) rnorm(n, 1, 1)
+imp3 <- function(n) rnorm(n, 2, 1)
+
+imps <- list(imp1, imp2, imp3)
+
+# Create example dataset with missing values
+set.seed(123)
 df <- data.frame(
-  eff1 = c(0.5, NA, 0.3),
-  eff2 = c(NA, 0.2, 0.3),
-  eff3 = c(0.1, 0.2, NA),
-  se1  = c(0.1, NA, 0.2),
-  se2  = c(NA, 0.25, 0.2),
-  se3  = c(0.05, 0.1, NA),
-  cor12 = c(NA, 0.4, 0.5),
-  cor13 = c(0.3, NA, 0.6),
-  cor23 = c(NA, 0.3, 0.7),
-  N = c(50, 60, 55)
+  eff1 = c(0.5, NA, 0.3, 0.7, 0.5, 0.2),
+  eff2 = c(NA, 0.2, 0.3, 0.4, 0.2, 0.5),
+  eff3 = c(0.1, 0.2, NA, 0.4, 0.9, 0.7),
+  se1  = c(0.1, NA, 0.2, 0.15, 0.1, 0.3),
+  se2  = c(NA, 0.25, 0.2, 0.2, 0.4, 0.2),
+  se3  = c(0.05, 0.1, NA, 0.15, 0.4, 0.6),
+  cor12 = c(NA, NA, 0.5, 0.7, 0.6, 0.6),
+  cor13 = c(0.3, NA, NA, 0.6, 0.6, 0.5),
+  cor23 = c(NA, 0.3, NA, 0.5, 0.6, 0.7),
+  N = c(50, 60, 55, 45, 100, 62)
 )
 
-out <- genimp_multi(df, iter = 5, imps = imps,
-                    effs = c("eff1","eff2","eff3"),
-                    ses = c("se1","se2","se3"),
-                    cors = c("cor12","cor13","cor23"),
-                    Ns = "N", imprho = c(0.7,0.5,0.6))
+# Run the imputation
+out <- genimp_multi(
+  df = df,
+  iter = 10, # increase number of imputations
+  imps = imps,
+  effs = c("eff1", "eff2", "eff3"),
+  ses = c("se1", "se2", "se3"),
+  cors = c("cor12", "cor13", "cor23"),
+  Ns = "N",
+  imprho = c(0.7, 0.5, 0.6)
+)
+
 summary(out)
 
 }

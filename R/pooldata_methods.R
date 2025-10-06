@@ -79,6 +79,7 @@ print.summary.pooldata <- function(x, ...) {
 
 #' @rdname pooldata-methods
 #' @method plot pooldata
+#' @importFrom graphics axis boxplot segments
 #' @export
 plot.pooldata <- function(x, ...) {
   boxplot(x$Q_mat,
