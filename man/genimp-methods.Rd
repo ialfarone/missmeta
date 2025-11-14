@@ -46,6 +46,7 @@ dmnar <- data.frame(
   Cor.ws = c(0.75, 0.5, NA, NA),
   N = c(100, 150, 120, 95)
 )
+
 imp1 <- function(n) rnorm(n, mean = 3, sd = 2)
 imp2 <- function(n) runif(n, min = 4, max = 7)
 out <- genimp(df = dmnar, iter = 2,

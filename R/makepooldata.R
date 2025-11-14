@@ -42,7 +42,7 @@ makepooldata <- function(data, effs = "eff", ses = "se", covs = "cov") {
   })
 
   out <- list(Q_mat = Q_mat, U_list = U_list, K = K, m = m)
-  class(out) <- "pooldata"
+  class(out) <- "makepooldata"
   out
 
 }
