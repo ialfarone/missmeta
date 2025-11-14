@@ -24,6 +24,9 @@
 #'
 #' @param imprho Numeric. Assumed within-study correlation to impute for studies where `cor` is missing.
 #'
+#' @param seed Optional numeric value. If provided, the function generates distinct
+#' and reproducible imputed datasets by assigning a different seed to each iteration.
+#' If \code{NULL} (default), no seed is set.
 #'
 #' @return A list of imputed data frames (one per iteration), with missing values replaced using user-specified models.
 #' @export
@@ -42,10 +45,10 @@
 #'   N = c(100, 150, 120, 95)
 #' )
 #'
-#' imp1 = function(n) rnorm(n, mean = 3, sd = 2)
-#' imp2 = function(n) runif(n, min = 4, max = 7)
+#' imp1 <- function(n) rnorm(n, mean = 3, sd = 2)
+#' imp2 <- function(n) runif(n, min = 4, max = 7)
 #'
-#' out = genimp(df = dmnar,
+#' out <- genimp(df = dmnar,
 #'               iter = 2, # set 1000
 #'               imp1 = imp1,
 #'               imp2 = imp2,
@@ -75,21 +78,41 @@
 #'
 #' lapply(out_list, summary)
 #' lapply(out_list, plot)
-genimp = function(df, iter = 100,
+genimp <- function(df, iter = 100,
                   imp1, imp2,
-                  eff1 = "Eff1", eff2 = "Eff2",
-                  se1 = "SE1", se2 = "SE2",
-                  cor = "Cor.ws", N = "N",
-                  imprho = 0.7) {
+                  eff1 = "Eff1",
+                  eff2 = "Eff2",
+                  se1 = "SE1",
+                  se2 = "SE2",
+                  cor = "Cor.ws",
+                  N = "N",
+                  imprho = 0.7,
+                  seed = NULL) {
+
+  if (!is.null(seed)) {
+    main_seed <- seed
+    seeds_iter <- main_seed + seq_len(iter)
+  } else {
+    seeds_iter <- rep(NA, iter)
+  }
+
   results = vector("list", iter)
 
   for (i in seq_len(iter)) {
+
+    # Apply per-iteration seed
+    if (!is.na(seeds_iter[i])) {
+      set.seed(seeds_iter[i])
+    }
+
     dfi = df
+
     Nmiss1 = sum(is.na(dfi[[eff1]]))
     Nmiss2 = sum(is.na(dfi[[eff2]]))
 
     dfi[[eff1]][is.na(dfi[[eff1]])] = imp1(Nmiss1)
     dfi[[eff2]][is.na(dfi[[eff2]])] = imp2(Nmiss2)
+
     dfi[[cor]][is.na(dfi[[cor]])] = imprho
 
     comp = !is.na(dfi[[se1]]) & !is.na(dfi[[se2]])
@@ -98,19 +121,21 @@ genimp = function(df, iter = 100,
       log(dfi[[se2]][comp] * sqrt(dfi[[N]][comp]))
     )
 
-
     mu_hat    = colMeans(log_sig)
     Sigma_hat = var(log_sig)
 
     miss = is.na(dfi[[se1]]) | is.na(dfi[[se2]])
-    log_draw  = mvtnorm::rmvnorm(sum(miss), mean = mu_hat, sigma = Sigma_hat)
-    sigma_imp = exp(log_draw)
 
-    idx_se1 = which(miss & is.na(dfi[[se1]]))
-    idx_se2 = which(miss & is.na(dfi[[se2]]))
+    if (any(miss)) {
+      log_draw  = mvtnorm::rmvnorm(sum(miss), mean = mu_hat, sigma = Sigma_hat)
+      sigma_imp = exp(log_draw)
 
-    dfi[[se1]][idx_se1] = sigma_imp[seq_along(idx_se1), 1] / sqrt(dfi[[N]][idx_se1])
-    dfi[[se2]][idx_se2] = sigma_imp[seq_along(idx_se2), 2] / sqrt(dfi[[N]][idx_se2])
+      idx_se1 = which(miss & is.na(dfi[[se1]]))
+      idx_se2 = which(miss & is.na(dfi[[se2]]))
+
+      dfi[[se1]][idx_se1] = sigma_imp[seq_along(idx_se1), 1] / sqrt(dfi[[N]][idx_se1])
+      dfi[[se2]][idx_se2] = sigma_imp[seq_along(idx_se2), 2] / sqrt(dfi[[N]][idx_se2])
+    }
 
     results[[i]] <- dfi
   }
@@ -118,6 +143,8 @@ genimp = function(df, iter = 100,
   out <- list(
     imputations = results,
     iter = iter,
+    seed = seed,
+    seeds_used = seeds_iter,
     call = match.call(),
     vars = list(eff1 = eff1, eff2 = eff2, se1 = se1, se2 = se2, cor = cor, N = N),
     missing_counts = list(
@@ -128,6 +155,8 @@ genimp = function(df, iter = 100,
       cor  = sum(is.na(df[[cor]]))
     )
   )
-  class(out) <- "dataimp"
+
+  class(out) <- "genimp"
   out
 }
+

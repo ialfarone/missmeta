@@ -34,7 +34,7 @@ test_that("genimp_multi imputes missing values as expected", {
   )
 
   # --- Basic structure ---
-  expect_s3_class(out, "dataimp_multi")
+  expect_s3_class(out, "genimp_multi")
   expect_type(out$imputations, "list")
   expect_equal(length(out$imputations), 1)
   expect_true(all(c("eff1", "eff2", "eff3") %in% names(out$imputations[[1]])))

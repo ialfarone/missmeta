@@ -1,14 +1,14 @@
-#' Methods for \code{dataimp_multi} objects
+#' Methods for \code{genimp_multi} objects
 #'
 #' Printing and summarizing methods for objects returned by \code{\link{genimp_multi}}.
 #'
-#' @param x,object An object of class \code{dataimp_multi}.
+#' @param x,object An object of class \code{genimp_multi}.
 #' @param ... Further arguments passed to or from other methods (currently ignored).
 #'
 #' @return
-#' - \code{print.dataimp_multi}: prints a short description of the object.
-#' - \code{summary.dataimp_multi}: returns an object of class \code{summary.dataimp_multi}.
-#' - \code{print.summary.dataimp_multi}: prints the summary.
+#' - \code{print.genimp_multi}: prints a short description of the object.
+#' - \code{summary.genimp_multi}: returns an object of class \code{summary.genimp_multi}.
+#' - \code{print.summary.genimp_multi}: prints the summary.
 #'
 #' @examples
 #' # Define dummy imputation functions
@@ -47,15 +47,15 @@
 #'
 #' summary(out)
 #'
-#' @name dataimp-multi-methods
-#' @title Methods for dataimp_multi objects
+#' @name genimp-multi-methods
+#' @title Methods for genimp_multi objects
 NULL
 
-#' @rdname dataimp-multi-methods
-#' @method print dataimp_multi
+#' @rdname genimp-multi-methods
+#' @method print genimp_multi
 #' @export
-print.dataimp_multi <- function(x, ...) {
-  cat("Multivariate DataImputation object\n")
+print.genimp_multi <- function(x, ...) {
+  cat("Multivariate genimputation object\n")
   cat(" - Number of imputations:", x$iter, "\n")
   cat(" - Number of studies:", nrow(x$imputations[[1]]), "\n")
   cat(" - Number of outcomes:", length(x$vars$effs), "\n")
@@ -63,10 +63,10 @@ print.dataimp_multi <- function(x, ...) {
   invisible(x)
 }
 
-#' @rdname dataimp-multi-methods
-#' @method summary dataimp_multi
+#' @rdname genimp-multi-methods
+#' @method summary genimp_multi
 #' @export
-summary.dataimp_multi <- function(object, ...) {
+summary.genimp_multi <- function(object, ...) {
   res <- list(
     iter = object$iter,
     n_studies = nrow(object$imputations[[1]]),
@@ -74,14 +74,14 @@ summary.dataimp_multi <- function(object, ...) {
     imp_counts = object$missing_counts,
     call = object$call
   )
-  class(res) <- "summary.dataimp_multi"
+  class(res) <- "summary.genimp_multi"
   res
 }
 
-#' @rdname dataimp-multi-methods
+#' @rdname genimp-multi-methods
 #' @export
-print.summary.dataimp_multi <- function(x, ...) {
-  cat("Summary of Multivariate DataImputation object\n")
+print.summary.genimp_multi <- function(x, ...) {
+  cat("Summary of Multivariate genimputation object\n")
   cat(" - Number of imputations:", x$iter, "\n")
   cat(" - Number of studies:", x$n_studies, "\n")
   cat(" - Outcomes:", x$n_outcomes, "\n")
@@ -89,3 +89,35 @@ print.summary.dataimp_multi <- function(x, ...) {
   print(x$imp_counts)
   invisible(x)
 }
+
+#' @rdname genimp-multi-methods
+#' @method plot genimp_multi
+#' @export
+plot.genimp_multi <- function(x, ...) {
+
+  if (length(x$imputations) == 0) {
+    warning("No imputations available to plot.")
+    return(invisible(NULL))
+  }
+
+  df0 <- x$imputations[[1]]
+
+  effs <- x$vars$effs
+
+  missing_cols <- effs[!(effs %in% names(df0))]
+  if (length(missing_cols) > 0) {
+    stop("The following effect size columns are missing in imputations: ",
+         paste(missing_cols, collapse = ", "))
+  }
+
+  y <- df0[effs]
+  y <- as.data.frame(lapply(y, as.numeric))
+
+  boxplot(
+    y,
+    main = "Distribution of imputed effect sizes (first imputation)",
+    ylab = "Effect size values",
+    ...
+  )
+}
+

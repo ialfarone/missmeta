@@ -4,7 +4,17 @@
 \alias{genimp_multi}
 \title{Flexible Imputation for Multivariate Meta-Analysis}
 \usage{
-genimp_multi(df, iter = 100, imps, effs, ses, cors = NULL, Ns = "N", imprho)
+genimp_multi(
+  df,
+  iter = 100,
+  imps,
+  effs,
+  ses,
+  cors = NULL,
+  Ns = "N",
+  imprho,
+  seed = NULL
+)
 }
 \arguments{
 \item{df}{Data frame for meta-analysis with missing values (data.frame).}
@@ -24,6 +34,10 @@ for each effect size (e.g., \code{list(imp1, imp2, imp3)}).}
 
 \item{imprho}{Numeric scalar or vector. Imputed value(s) for within-study correlations if \code{cors} contain missing values.
 If a scalar, the same value is used for all correlations. If a vector, must match the length of \code{cors}.}
+
+\item{seed}{Optional numeric value. If provided, the function generates distinct
+and reproducible imputed datasets by assigning a different seed to each iteration.
+If \code{NULL} (default), no seed is set.}
 }
 \value{
 A list of \code{iter} imputed data frames, with missing values replaced using user-specified models and multivariate draws.
@@ -66,7 +80,8 @@ imp_data <- genimp_multi(
   ses = c("se1", "se2", "se3"),
   cors = c("cor12", "cor13", "cor23"),
   Ns = "N",
-  imprho = c(0.7, 0.5, 0.6)
+  imprho = c(0.7, 0.5, 0.6),
+  seed = 123
 )
 
 # View the first imputed dataset

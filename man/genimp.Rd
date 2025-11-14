@@ -15,7 +15,8 @@ genimp(
   se2 = "SE2",
   cor = "Cor.ws",
   N = "N",
-  imprho = 0.7
+  imprho = 0.7,
+  seed = NULL
 )
 }
 \arguments{
@@ -40,6 +41,10 @@ genimp(
 \item{N}{Character string. Column name in `df` for the sample size (or total number of observations) per study.}
 
 \item{imprho}{Numeric. Assumed within-study correlation to impute for studies where `cor` is missing.}
+
+\item{seed}{Optional numeric value. If provided, the function generates distinct
+and reproducible imputed datasets by assigning a different seed to each iteration.
+If \code{NULL} (default), no seed is set.}
 }
 \value{
 A list of imputed data frames (one per iteration), with missing values replaced using user-specified models.
@@ -61,10 +66,10 @@ standard errors. Within-study correlations can also be imputed.
   N = c(100, 150, 120, 95)
 )
 
-imp1 = function(n) rnorm(n, mean = 3, sd = 2)
-imp2 = function(n) runif(n, min = 4, max = 7)
+imp1 <- function(n) rnorm(n, mean = 3, sd = 2)
+imp2 <- function(n) runif(n, min = 4, max = 7)
 
-out = genimp(df = dmnar,
+out <- genimp(df = dmnar,
               iter = 2, # set 1000
               imp1 = imp1,
               imp2 = imp2,

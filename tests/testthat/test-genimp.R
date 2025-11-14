@@ -25,7 +25,7 @@ test_that("genimp returns a list of imputed data frames", {
     imprho = 0.5
   )
 
-  expect_s3_class(out, "dataimp")
+  expect_s3_class(out, "genimp")
   expect_length(out$imputations, 3)
 
   lapply(out$imputations, function(df_out) {
@@ -38,7 +38,6 @@ test_that("genimp returns a list of imputed data frames", {
     expect_false(any(is.na(df_out$SESR)))
     expect_false(any(is.na(df_out$Cor.ws)))
   })
-
 })
 
 test_that("genimp output structure is consistent", {
@@ -60,9 +59,10 @@ test_that("genimp output structure is consistent", {
                 se1 = "SECR", se2 = "SESR",
                 cor = "Cor.ws", N = "N")
 
-  expect_s3_class(out, "dataimp")
+  expect_s3_class(out, "genimp")
   expect_true(is.list(out))
-  expect_named(out, c("imputations", "iter", "call", "vars", "missing_counts"))
+  expect_named(out, c("imputations", "iter", "seed", "seeds_used",
+                      "call", "vars", "missing_counts"))
 
   expect_type(out$iter, "double")
   expect_equal(length(out$imputations), 2)
@@ -103,10 +103,9 @@ test_that("genimp correctly counts missing values in input", {
   expect_equal(out$missing_counts$cor, 1)
 })
 
-
 test_that("genimp produces reproducible imputations with deterministic imputers", {
 
-   df_test <- data.frame(
+  df_test <- data.frame(
     EstCR = c(3.7, 1.3, 4.2, NA),
     EstSR = c(3.2, 3.2, NA, 5.6),
     SECR = c(1.5, 1.2, 2.1, NA),
@@ -131,7 +130,6 @@ test_that("genimp produces reproducible imputations with deterministic imputers"
     N = "N",
     imprho = 0.5
   )
-
 
   expect_identical(out$imputations[[1]]$EstCR, out$imputations[[2]]$EstCR)
 })
@@ -168,5 +166,3 @@ test_that("genimp imputes positive standard errors", {
     expect_true(all(df_out$SESR > 0))
   })
 })
-
-

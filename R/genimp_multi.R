@@ -15,6 +15,9 @@
 #' @param Ns Character string. Column name in \code{df} representing the total sample size per study (e.g., \code{"N"}).
 #' @param imprho Numeric scalar or vector. Imputed value(s) for within-study correlations if \code{cors} contain missing values.
 #'   If a scalar, the same value is used for all correlations. If a vector, must match the length of \code{cors}.
+#' @param seed Optional numeric value. If provided, the function generates distinct
+#' and reproducible imputed datasets by assigning a different seed to each iteration.
+#' If \code{NULL} (default), no seed is set.
 #'
 #' @return A list of \code{iter} imputed data frames, with missing values replaced using user-specified models and multivariate draws.
 #' @export
@@ -54,7 +57,8 @@
 #'   ses = c("se1", "se2", "se3"),
 #'   cors = c("cor12", "cor13", "cor23"),
 #'   Ns = "N",
-#'   imprho = c(0.7, 0.5, 0.6)
+#'   imprho = c(0.7, 0.5, 0.6),
+#'   seed = 123
 #' )
 #'
 #' # View the first imputed dataset
@@ -66,11 +70,25 @@ genimp_multi <- function(df, iter = 100,
                          ses,
                          cors = NULL,
                          Ns = "N",
-                         imprho) {
+                         imprho,
+                         seed = NULL) {
+
+  if (!is.null(seed)) {
+    base_seed <- seed
+    seeds_iter <- base_seed + seq_len(iter)
+  } else {
+    seeds_iter <- rep(NA, iter)
+  }
+
   K <- length(effs)
   results <- vector("list", iter)
 
   for (i in seq_len(iter)) {
+
+    if (!is.na(seeds_iter[i])) {
+      set.seed(seeds_iter[i])
+    }
+
     dfi <- df
 
     for (k in seq_along(effs)) {
@@ -81,20 +99,22 @@ genimp_multi <- function(df, iter = 100,
       }
     }
 
-    if (length(imprho) == 1) {
-      imprho_vec <- rep(imprho, length(cors))
-    } else if (length(imprho) == length(cors)) {
-      imprho_vec <- imprho
-    } else {
-      stop("imprho must be a scalar or a vector with length equal to cors.")
-    }
+    # --- Handle correlations ---
+    if (!is.null(cors)) {
+      if (length(imprho) == 1) {
+        imprho_vec <- rep(imprho, length(cors))
+      } else if (length(imprho) == length(cors)) {
+        imprho_vec <- imprho
+      } else {
+        stop("imprho must be a scalar or a vector with length equal to cors.")
+      }
 
-    for (idx in seq_along(cors)) {
-      cor <- cors[idx]
-      cor_val <- imprho_vec[idx]
-      dfi[[cor]][is.na(dfi[[cor]])] <- cor_val
+      for (idx in seq_along(cors)) {
+        cor <- cors[idx]
+        cor_val <- imprho_vec[idx]
+        dfi[[cor]][is.na(dfi[[cor]])] <- cor_val
+      }
     }
-
 
     comp <- complete.cases(dfi[, ses])
     if (sum(comp) < 2) {
@@ -112,6 +132,7 @@ genimp_multi <- function(df, iter = 100,
     mu_hat <- colMeans(log_sig)
     Sigma_hat <- var(log_sig)
 
+    # --- Impute missing standard errors ---
     miss <- !complete.cases(dfi[, ses])
     nmiss <- sum(miss)
 
@@ -128,17 +149,23 @@ genimp_multi <- function(df, iter = 100,
       }
     }
 
+    # Store result
     results[[i]] <- dfi
   }
+
 
   out <- list(
     imputations = results,
     iter = iter,
+    seed = seed,
+    seeds_used = seeds_iter,
     call = match.call(),
     vars = list(effs = effs, ses = ses, cors = cors, N = Ns),
     missing_counts = sapply(c(effs, ses, cors),
                             function(v) sum(is.na(df[[v]])))
   )
-  class(out) <- "dataimp_multi"
+
+  class(out) <- "genimp_multi"
   out
 }
+

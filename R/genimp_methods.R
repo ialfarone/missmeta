@@ -1,20 +1,20 @@
-#' Methods for \code{dataimp} objects
+#' Methods for \code{genimp} objects
 #'
 #' These methods provide printing, summarizing, and plotting facilities for
-#' objects of class \code{dataimp}, created by \code{\link{genimp}}.
+#' objects of class \code{genimp}, created by \code{\link{genimp}}.
 #'
-#' @param x,object An object of class \code{dataimp}.
+#' @param x,object An object of class \code{genimp}.
 #' @param ... Further arguments passed to or from other methods.
 #'
 #' @return
-#' - \code{print.dataimp}: prints a short description of the imputation object.
-#' - \code{summary.dataimp}: returns an object of class \code{summary.dataimp}.
-#' - \code{print.summary.dataimp}: prints the summary.
-#' - \code{plot.dataimp}: creates a basic plot (e.g., distribution of imputed effects).
+#' - \code{print.genimp}: prints a short description of the imputation object.
+#' - \code{summary.genimp}: returns an object of class \code{summary.dataimp}.
+#' - \code{print.summary.genimp}: prints the summary.
+#' - \code{plot.genimp}: creates a basic plot (e.g., distribution of imputed effects).
 #'
 #'#' @details
 #' When \code{genimp()} is called repeatedly (e.g. inside \code{lapply} or \code{mapply}),
-#' the result will be a list of \code{dataimp} objects. In that case, use
+#' the result will be a list of \code{genimp} objects. In that case, use
 #' \code{lapply(out, summary)} or \code{purrr::map(out, summary)} to obtain summaries
 #' for each element.
 #'
@@ -35,40 +35,40 @@
 #'               se1 = "SECR", se2 = "SESR",
 #'               cor = "Cor.ws", N = "N")
 #'
-#' out              # calls print.dataimp
-#' summary(out)     # calls summary.dataimp
-#' plot(out)        # calls plot.dataimp
+#' out              # calls print.genimp
+#' summary(out)     # calls summary.genimp
+#' plot(out)        # calls plot.genimp
 #'
-#' @name dataimp-methods
+#' @name genimp-methods
 NULL
 
-#' @rdname dataimp-methods
-#' @method print dataimp
+#' @rdname genimp-methods
+#' @method print genimp
 #' @export
-print.dataimp <- function(x, ...) {
+print.genimp <- function(x, ...) {
   cat("DataImputation object\n")
   cat(" - Number of imputations:", x$iter, "\n")
   cat(" - Number of studies:", nrow(x$imputations[[1]]), "\n")
   cat(" - Use summary() for details\n")
 }
 
-#' @rdname dataimp-methods
-#' @method summary dataimp
+#' @rdname genimp-methods
+#' @method summary genimp
 #' @export
-summary.dataimp <- function(object, ...) {
+summary.genimp <- function(object, ...) {
   res <- list(
     iter = object$iter,
     n_studies = nrow(object$imputations[[1]]),
     imp_counts = object$missing_counts,
     call = object$call
   )
-  class(res) <- "summary.dataimp"
+  class(res) <- "summary.genimp"
   res
 }
 
-#' @rdname dataimp-methods
+#' @rdname genimp-methods
 #' @export
-print.summary.dataimp <- function(x, ...) {
+print.summary.genimp <- function(x, ...) {
   cat("Summary of DataImputation object\n")
   cat(" - Number of imputations:", x$iter, "\n")
   cat(" - Number of studies:", x$n_studies, "\n")
@@ -76,12 +76,33 @@ print.summary.dataimp <- function(x, ...) {
   print(x$imp_counts)
 }
 
-#' @rdname dataimp-methods
-#' @method plot dataimp
+#' @rdname genimp-methods
+#' @method plot genimp
 #' @export
-plot.dataimp <- function(x, ...) {
+plot.genimp <- function(x, ...) {
+
+  if (length(x$imputations) == 0) {
+    warning("No imputations available to plot.")
+    return(invisible(NULL))
+  }
+
   df0 <- x$imputations[[1]]
-  boxplot(df0[[x$vars$eff1]], df0[[x$vars$eff2]],
-          names = c(x$vars$eff1, x$vars$eff2),
-          main = "Distribution of imputed effects")
+
+  v1 <- x$vars$eff1
+  v2 <- x$vars$eff2
+
+  if (!(v1 %in% names(df0)) | !(v2 %in% names(df0))) {
+    stop("Variables ", v1, " and/or ", v2, " are not present in the imputations.")
+  }
+
+  y1 <- as.numeric(df0[[v1]])
+  y2 <- as.numeric(df0[[v2]])
+
+  boxplot(
+    y1, y2,
+    names = c(v1, v2),
+    main = "Distribution of imputed effects (first imputation)",
+    ylab = "Values",
+    ...
+  )
 }
