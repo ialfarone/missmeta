@@ -99,7 +99,6 @@ genimp_multi <- function(df, iter = 100,
       }
     }
 
-    # --- Handle correlations ---
     if (!is.null(cors)) {
       if (length(imprho) == 1) {
         imprho_vec <- rep(imprho, length(cors))
@@ -132,7 +131,6 @@ genimp_multi <- function(df, iter = 100,
     mu_hat <- colMeans(log_sig)
     Sigma_hat <- var(log_sig)
 
-    # --- Impute missing standard errors ---
     miss <- !complete.cases(dfi[, ses])
     nmiss <- sum(miss)
 
@@ -149,7 +147,6 @@ genimp_multi <- function(df, iter = 100,
       }
     }
 
-    # Store result
     results[[i]] <- dfi
   }
 
