@@ -58,7 +58,8 @@
 #'               se2 = "SESR",
 #'               cor = "Cor.ws",
 #'               N = "N",
-#'               imprho = 0.3)
+#'               imprho = 0.3,
+#'               seed = 123)
 #'
 #' summary(out)
 #' plot(out)
